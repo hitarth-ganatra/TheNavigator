@@ -1,24 +1,59 @@
 import type { PlaceSummary, RouteMode, RouteResult } from '../types/googleMaps'
 
-const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-const ROUTES_BASE_URL = 'https://routes.googleapis.com/directions/v2:computeRoutes'
+const API_KEY = import.meta.env.VITE_ORS_API_KEY
+const ROUTES_BASE_URL = 'https://api.openrouteservice.org/v2/directions/driving-car'
 
 const ensureApiKey = () => {
   if (!API_KEY) {
-    throw new Error('Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY to compute routes.')
+    throw new Error('OpenRouteService API key is missing. Set VITE_ORS_API_KEY to compute routes.')
   }
 
   return API_KEY
 }
 
-const toWaypoint = (place: PlaceSummary) => ({
-  location: {
-    latLng: {
-      latitude: place.location.lat,
-      longitude: place.location.lng,
-    },
-  },
-})
+const toDurationString = (seconds: number) => `${Math.max(0, Math.round(seconds))}s`
+
+const haversineMeters = (left: PlaceSummary, right: PlaceSummary) => {
+  const toRad = (value: number) => (value * Math.PI) / 180
+  const earthRadius = 6371000
+  const dLat = toRad(right.location.lat - left.location.lat)
+  const dLng = toRad(right.location.lng - left.location.lng)
+  const lat1 = toRad(left.location.lat)
+  const lat2 = toRad(right.location.lat)
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLng / 2) * Math.sin(dLng / 2) * Math.cos(lat1) * Math.cos(lat2)
+
+  return 2 * earthRadius * Math.asin(Math.sqrt(a))
+}
+
+const optimizeStops = (origin: PlaceSummary, selectedPlaces: PlaceSummary[]) => {
+  const remaining = selectedPlaces.map((_, index) => index)
+  const order: number[] = []
+  let current = origin
+
+  while (remaining.length > 0) {
+    let bestIndex = remaining[0]
+    let bestDistance = Number.POSITIVE_INFINITY
+
+    remaining.forEach((candidateIndex) => {
+      const candidate = selectedPlaces[candidateIndex]
+      const distance = haversineMeters(current, candidate)
+
+      if (distance < bestDistance) {
+        bestDistance = distance
+        bestIndex = candidateIndex
+      }
+    })
+
+    order.push(bestIndex)
+    current = selectedPlaces[bestIndex]
+    remaining.splice(remaining.indexOf(bestIndex), 1)
+  }
+
+  return order
+}
 
 export const computeRoute = async (
   origin: PlaceSummary,
@@ -31,66 +66,62 @@ export const computeRoute = async (
     throw new Error('Choose at least one stop before computing a route.')
   }
 
-  const response = await fetch(ROUTES_BASE_URL, {
+  const optimizedOrder = mode === 'optimized' ? optimizeStops(origin, selectedPlaces) : []
+  const orderedStops = optimizedOrder.length > 0 ? optimizedOrder.map((index) => selectedPlaces[index]) : selectedPlaces
+
+  const coordinates = [origin, ...orderedStops, origin].map((place) => [place.location.lng, place.location.lat])
+
+  const response = await fetch(`${ROUTES_BASE_URL}?api_key=${encodeURIComponent(apiKey)}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask':
-        'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex,routes.legs.distanceMeters,routes.legs.duration',
     },
     body: JSON.stringify({
-      origin: toWaypoint(origin),
-      destination: toWaypoint(origin),
-      intermediates: selectedPlaces.map(toWaypoint),
-      travelMode: 'DRIVE',
-      routingPreference: 'TRAFFIC_AWARE',
-      optimizeWaypointOrder: mode === 'optimized',
-      languageCode: import.meta.env.VITE_GOOGLE_MAPS_LANGUAGE || 'en',
-      units: 'METRIC',
+      coordinates,
+      instructions: false,
+      geometry: true,
+      elevation: false,
+      units: 'm',
+      language: import.meta.env.VITE_MAP_LANGUAGE || 'en',
     }),
   })
 
   if (!response.ok) {
-    throw new Error('Route request failed. Confirm Routes API access and billing are enabled.')
+    throw new Error('Route request failed. Confirm OpenRouteService access and limits.')
   }
 
   const data = (await response.json()) as {
     routes?: Array<{
-      distanceMeters?: number
-      duration?: string
-      polyline?: { encodedPolyline?: string }
-      optimizedIntermediateWaypointIndex?: number[]
-      legs?: Array<{
-        distanceMeters?: number
-        duration?: string
+      geometry?: string
+      summary?: {
+        distance?: number
+        duration?: number
+      }
+      segments?: Array<{
+        distance?: number
+        duration?: number
       }>
     }>
   }
 
   const route = data.routes?.[0]
 
-  if (!route?.polyline?.encodedPolyline) {
+  if (!route?.geometry) {
     throw new Error('No route was returned for the selected places.')
   }
 
-  const orderedStops =
-    mode === 'optimized' && route.optimizedIntermediateWaypointIndex?.length
-      ? route.optimizedIntermediateWaypointIndex.map((index) => selectedPlaces[index])
-      : selectedPlaces
-
-  const legs = (route.legs || []).map((leg, index) => ({
-    distanceMeters: leg.distanceMeters || 0,
-    duration: leg.duration || '0s',
+  const legs = (route.segments || []).map((leg, index) => ({
+    distanceMeters: leg.distance || 0,
+    duration: toDurationString(leg.duration || 0),
     startAddress: index === 0 ? origin.name : orderedStops[index - 1]?.name || origin.name,
     endAddress: orderedStops[index]?.name || origin.name,
   }))
 
   return {
-    encodedPolyline: route.polyline.encodedPolyline,
-    totalDistanceMeters: route.distanceMeters || 0,
-    totalDuration: route.duration || '0s',
-    optimizedOrder: route.optimizedIntermediateWaypointIndex || [],
+    encodedPolyline: route.geometry,
+    totalDistanceMeters: route.summary?.distance || 0,
+    totalDuration: toDurationString(route.summary?.duration || 0),
+    optimizedOrder,
     legs,
   }
 }

@@ -123,9 +123,9 @@ export const PlannerPage = () => {
               </Stack>
             </Stack>
           </Paper>
-          {!import.meta.env.VITE_GOOGLE_MAP_ID ? (
+          {!import.meta.env.VITE_ORS_API_KEY ? (
             <Alert severity="info">
-              Add a vector map ID for the richest 3D map experience. The planner still renders with a standard map when the key is present.
+              Add an OpenRouteService API key to enable autocomplete, nearby place search, and route generation.
             </Alert>
           ) : null}
           <Box className="planner-grid">
@@ -153,7 +153,7 @@ export const PlannerPage = () => {
               <Paper className="surface" elevation={0}>
                 <Stack spacing={2}>
                   <Typography variant="h6" fontWeight={700}>
-                    Live 3D map preview
+                    Live map preview
                   </Typography>
                   <MapPanel
                     center={origin?.location}

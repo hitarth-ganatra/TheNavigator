@@ -1,38 +1,25 @@
 # TheNavigator
 
-TheNavigator is a React + TypeScript demo web app that showcases the latest Google Maps Platform APIs in a travel-planner flow.
+TheNavigator is a React + TypeScript demo web app for travel planning using free-map providers (OpenStreetMap + OpenRouteService).
 
 ## Features
 
 - Login/register landing screen with a sliding animation
 - Planner workspace with:
-  - Google Places autocomplete
+  - location autocomplete
   - configurable nearby search radius and result count
   - recent search history
-  - nearby popular place cards with add-to-itinerary actions
+  - nearby place cards with add-to-itinerary actions
   - reorderable selected-places panel with drag and drop
-  - live map preview with tilt/heading support for a 3D-style view
+  - live map preview
 - Route page with:
   - ordered routing
-  - optimized routing
+  - optimized routing (nearest-neighbor heuristic)
   - route summary, legs, and full map polyline rendering
 
-## Google Maps setup
+## API setup
 
-Enable these APIs in Google Cloud:
-
-1. Maps JavaScript API
-2. Places API (New)
-3. Routes API
-4. Geocoding API
-
-Recommended key restrictions:
-
-- Restrict the key by HTTP referrer
-- Restrict the key to the APIs listed above
-- Create and use a vector map ID for the best 3D map experience
-
-Create a local environment file:
+Create a free OpenRouteService key (no upfront payment required) and configure your local environment file:
 
 ```bash
 cp .env.example .env
@@ -41,10 +28,11 @@ cp .env.example .env
 Fill in:
 
 ```env
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-VITE_GOOGLE_MAP_ID=your_vector_map_id
-VITE_GOOGLE_MAPS_REGION=IN
-VITE_GOOGLE_MAPS_LANGUAGE=en
+VITE_ORS_API_KEY=your_openrouteservice_api_key
+VITE_MAP_COUNTRY_CODE=IN
+VITE_MAP_LANGUAGE=en
+VITE_MAP_TILE_URL=https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+VITE_MAP_TILE_ATTRIBUTION=&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors
 ```
 
 ## Run locally
@@ -65,4 +53,5 @@ npm run build
 
 - Auth is implemented as a local demo flow and persisted in local storage.
 - Search history, planner state, and the last computed route are also persisted locally.
-- Without a Google Maps API key the UI still loads, but live autocomplete, nearby search, and route computation stay disabled.
+- OpenStreetMap attribution must stay visible when using the default tile layer.
+- Without an OpenRouteService API key the UI still loads, but live autocomplete, nearby search, and route computation stay disabled.

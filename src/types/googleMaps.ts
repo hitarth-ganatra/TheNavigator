@@ -49,4 +49,5 @@ export type AutocompletePrediction = {
   placeId: string
   text: string
   secondaryText?: string
+  place: PlaceSummary
 }

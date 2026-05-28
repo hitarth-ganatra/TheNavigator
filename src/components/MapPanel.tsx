@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Alert, Box, CircularProgress, Stack, Typography } from '@mui/material'
+import { useEffect } from 'react'
+import { Box } from '@mui/material'
+import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet'
 
-import { googleMapsConfig, loadMapsLibrary, loadMarkerLibrary } from '../services/googleMaps'
 import type { Coordinates, PlaceSummary } from '../types/googleMaps'
 import { decodePolyline } from '../utils/decodePolyline'
 
@@ -14,6 +14,42 @@ type MapPanelProps = {
   height?: number
 }
 
+const defaultCenter: [number, number] = [20.5937, 78.9629]
+
+const tileUrl = import.meta.env.VITE_MAP_TILE_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+const tileAttribution =
+  import.meta.env.VITE_MAP_TILE_ATTRIBUTION || '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+const FitToData = ({
+  center,
+  points,
+  routePath,
+}: {
+  center?: Coordinates | null
+  points: Array<[number, number]>
+  routePath: Array<{ lat: number; lng: number }>
+}) => {
+  const map = useMap()
+
+  useEffect(() => {
+    const allPoints = [...points, ...routePath.map((point) => [point.lat, point.lng] as [number, number])]
+
+    if (allPoints.length > 0) {
+      map.fitBounds(allPoints, { padding: [64, 64] })
+      return
+    }
+
+    if (center) {
+      map.setView([center.lat, center.lng], 11)
+      return
+    }
+
+    map.setView(defaultCenter, 4)
+  }, [center, map, points, routePath])
+
+  return null
+}
+
 export const MapPanel = ({
   center,
   origin,
@@ -22,129 +58,45 @@ export const MapPanel = ({
   encodedPolyline,
   height = 420,
 }: MapPanelProps) => {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<google.maps.Map | null>(null)
-  const markersRef = useRef<Array<google.maps.marker.AdvancedMarkerElement>>([])
-  const polylineRef = useRef<google.maps.Polyline | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-
-    const initializeMap = async () => {
-      try {
-        setLoading(true)
-        const mapsLibrary = await loadMapsLibrary()
-        await loadMarkerLibrary()
-
-        if (!mounted || !containerRef.current) {
-          return
-        }
-
-        mapRef.current = new mapsLibrary.Map(containerRef.current, {
-          center: { lat: 20.5937, lng: 78.9629 },
-          zoom: 4,
-          mapId: googleMapsConfig.mapId,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-          gestureHandling: 'greedy',
-          tilt: 0,
-          heading: 0,
-        })
-        setError(null)
-      } catch (caughtError) {
-        setError(caughtError instanceof Error ? caughtError.message : 'Map failed to load.')
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    initializeMap()
-
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!mapRef.current || loading) {
-      return
-    }
-
-    markersRef.current.forEach((marker) => {
-      marker.map = null
-    })
-    markersRef.current = []
-
-    polylineRef.current?.setMap(null)
-    polylineRef.current = null
-
-    const bounds = new google.maps.LatLngBounds()
-    const allPlaces = [origin, ...nearbyPlaces, ...selectedPlaces].filter(Boolean) as PlaceSummary[]
-
-    allPlaces.forEach((place) => {
-      const isOrigin = place.placeId === origin?.placeId
-      const isSelected = selectedPlaces.some((item) => item.placeId === place.placeId)
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        map: mapRef.current!,
-        position: place.location,
-        title: place.name,
-        content: (() => {
-          const node = document.createElement('div')
-          node.className = `map-marker ${isOrigin ? 'map-marker--origin' : isSelected ? 'map-marker--selected' : ''}`
-          node.textContent = isOrigin ? '📍' : isSelected ? '★' : '•'
-          return node
-        })(),
-      })
-      markersRef.current.push(marker)
-      bounds.extend(place.location)
-    })
-
-    if (encodedPolyline) {
-      polylineRef.current = new google.maps.Polyline({
-        path: decodePolyline(encodedPolyline),
-        strokeColor: '#4f46e5',
-        strokeOpacity: 0.85,
-        strokeWeight: 5,
-      })
-      polylineRef.current.setMap(mapRef.current)
-      decodePolyline(encodedPolyline).forEach((point) => bounds.extend(point))
-    }
-
-    if (!bounds.isEmpty()) {
-      mapRef.current.fitBounds(bounds, 64)
-    } else if (center) {
-      mapRef.current.setCenter(center)
-      mapRef.current.setZoom(11)
-    }
-
-    mapRef.current.setTilt(center ? 45 : 0)
-    mapRef.current.setHeading(center ? 40 : 0)
-  }, [center, encodedPolyline, loading, nearbyPlaces, origin, selectedPlaces])
+  const allPlaces = [origin, ...nearbyPlaces, ...selectedPlaces].filter(Boolean) as PlaceSummary[]
+  const routePath = encodedPolyline ? decodePolyline(encodedPolyline) : []
 
   return (
     <Box className="map-shell" sx={{ minHeight: height }}>
-      {error ? (
-        <Stack spacing={2} className="map-fallback">
-          <Alert severity="warning">{error}</Alert>
-          <Typography variant="body2" color="text.secondary">
-            Add a valid Google Maps key and vector map ID to render the live 3D map.
-          </Typography>
-        </Stack>
-      ) : (
-        <>
-          {loading && (
-            <Stack className="map-loading" alignItems="center" justifyContent="center">
-              <CircularProgress />
-            </Stack>
-          )}
-          <Box ref={containerRef} className="map-canvas" sx={{ minHeight: height }} />
-        </>
-      )}
+      <MapContainer center={defaultCenter} zoom={4} className="map-canvas" style={{ minHeight: height }}>
+        <TileLayer url={tileUrl} attribution={tileAttribution} />
+        <FitToData
+          center={center}
+          points={allPlaces.map((place) => [place.location.lat, place.location.lng])}
+          routePath={routePath}
+        />
+        {allPlaces.map((place) => {
+          const isOrigin = place.placeId === origin?.placeId
+          const isSelected = selectedPlaces.some((item) => item.placeId === place.placeId)
+
+          return (
+            <CircleMarker
+              key={`${place.placeId}-${isOrigin ? 'origin' : isSelected ? 'selected' : 'nearby'}`}
+              center={[place.location.lat, place.location.lng]}
+              radius={8}
+              pathOptions={{
+                color: isOrigin ? '#4338ca' : isSelected ? '#0f766e' : '#334155',
+                fillColor: isOrigin ? '#4f46e5' : isSelected ? '#14b8a6' : '#ffffff',
+                fillOpacity: 0.95,
+                weight: 2,
+              }}
+            >
+              <Tooltip>{place.name}</Tooltip>
+            </CircleMarker>
+          )
+        })}
+        {routePath.length > 1 ? (
+          <Polyline
+            positions={routePath.map((point) => [point.lat, point.lng] as [number, number])}
+            pathOptions={{ color: '#4f46e5', opacity: 0.85, weight: 5 }}
+          />
+        ) : null}
+      </MapContainer>
     </Box>
   )
 }
