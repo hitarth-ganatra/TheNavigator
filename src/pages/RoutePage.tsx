@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { MapPanel } from '../components/MapPanel'
 import { computeRoute } from '../services/routes'
@@ -27,14 +28,16 @@ export const RoutePage = () => {
     selectedPlaces,
     removeSelectedPlace,
     setRouteData,
-  } = useAppStore((state) => ({
-    origin: state.origin,
-    routeMode: state.routeMode,
-    routeResult: state.routeResult,
-    selectedPlaces: state.selectedPlaces,
-    removeSelectedPlace: state.removeSelectedPlace,
-    setRouteData: state.setRouteData,
-  }))
+  } = useAppStore(
+    useShallow((state) => ({
+      origin: state.origin,
+      routeMode: state.routeMode,
+      routeResult: state.routeResult,
+      selectedPlaces: state.selectedPlaces,
+      removeSelectedPlace: state.removeSelectedPlace,
+      setRouteData: state.setRouteData,
+    })),
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

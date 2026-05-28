@@ -2,6 +2,7 @@ import { useState } from 'react'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { Alert, Box, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 
 import { ConfigPanel } from '../components/ConfigPanel'
 import { MapPanel } from '../components/MapPanel'
@@ -30,21 +31,23 @@ export const PlannerPage = () => {
     reorderSelectedPlaces,
     setRouteData,
     logout,
-  } = useAppStore((state) => ({
-    authUser: state.authUser,
-    origin: state.origin,
-    nearbyPlaces: state.nearbyPlaces,
-    searchHistory: state.searchHistory,
-    selectedPlaces: state.selectedPlaces,
-    tripConfig: state.tripConfig,
-    setOrigin: state.setOrigin,
-    setNearbyPlaces: state.setNearbyPlaces,
-    addSelectedPlace: state.addSelectedPlace,
-    removeSelectedPlace: state.removeSelectedPlace,
-    reorderSelectedPlaces: state.reorderSelectedPlaces,
-    setRouteData: state.setRouteData,
-    logout: state.logout,
-  }))
+  } = useAppStore(
+    useShallow((state) => ({
+      authUser: state.authUser,
+      origin: state.origin,
+      nearbyPlaces: state.nearbyPlaces,
+      searchHistory: state.searchHistory,
+      selectedPlaces: state.selectedPlaces,
+      tripConfig: state.tripConfig,
+      setOrigin: state.setOrigin,
+      setNearbyPlaces: state.setNearbyPlaces,
+      addSelectedPlace: state.addSelectedPlace,
+      removeSelectedPlace: state.removeSelectedPlace,
+      reorderSelectedPlaces: state.reorderSelectedPlaces,
+      setRouteData: state.setRouteData,
+      logout: state.logout,
+    })),
+  )
   const [nearbyLoading, setNearbyLoading] = useState(false)
   const [nearbyError, setNearbyError] = useState<string | null>(null)
   const [routeLoading, setRouteLoading] = useState(false)
