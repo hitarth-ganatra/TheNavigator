@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
-import { autocompletePlaces, createSessionToken, getPlaceDetails } from '../services/places'
+import { autocompletePlaces, createSessionToken } from '../services/places'
 import { useAppStore } from '../store/appStore'
 import type { AutocompletePrediction, PlaceSummary } from '../types/googleMaps'
 
@@ -91,7 +91,7 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
 
           try {
             setLoading(true)
-            const place = await getPlaceDetails(value.placeId)
+            const place = value.place
             setInputValue(place.name)
             await onPlaceSelected(place)
             sessionTokenRef.current = createSessionToken()
@@ -137,8 +137,8 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
           </li>
         )}
       />
-      {!import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? (
-        <Alert severity="info">Set a Google Maps API key to enable live autocomplete.</Alert>
+      {!import.meta.env.VITE_ORS_API_KEY ? (
+        <Alert severity="info">Set an OpenRouteService API key to enable live autocomplete.</Alert>
       ) : null}
     </Stack>
   )

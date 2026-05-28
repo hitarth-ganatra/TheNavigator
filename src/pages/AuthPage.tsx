@@ -65,7 +65,7 @@ export const AuthPage = () => {
               TheNavigator
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Demo the latest Google Maps APIs with travel discovery, itinerary building, and route optimization.
+              Demo free-map travel discovery with itinerary building and route optimization.
             </Typography>
           </Stack>
           <Stack direction="row" className="auth-toggle">
