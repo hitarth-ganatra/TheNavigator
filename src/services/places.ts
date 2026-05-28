@@ -46,12 +46,7 @@ const toPlaceSummary = (feature: {
   }
 }
 
-export const createSessionToken = () => crypto.randomUUID().replace(/-/g, '')
-
-export const autocompletePlaces = async (
-  input: string,
-  _sessionToken: string,
-): Promise<AutocompletePrediction[]> => {
+export const autocompletePlaces = async (input: string): Promise<AutocompletePrediction[]> => {
   const apiKey = ensureApiKey()
 
   if (input.trim().length < 2) {

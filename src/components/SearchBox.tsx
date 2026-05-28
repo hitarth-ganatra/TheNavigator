@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import SearchIcon from '@mui/icons-material/Search'
 import {
   Alert,
@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
-import { autocompletePlaces, createSessionToken } from '../services/places'
+import { autocompletePlaces } from '../services/places'
 import { useAppStore } from '../store/appStore'
 import type { AutocompletePrediction, PlaceSummary } from '../types/googleMaps'
 
@@ -25,7 +25,6 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
   const [options, setOptions] = useState<AutocompletePrediction[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const sessionTokenRef = useRef(createSessionToken())
   const debouncedInput = useDebouncedValue(inputValue)
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
 
       try {
         setLoading(true)
-        const predictions = await autocompletePlaces(debouncedInput, sessionTokenRef.current)
+        const predictions = await autocompletePlaces(debouncedInput)
         if (active) {
           setOptions(predictions)
           setError(null)
@@ -94,7 +93,6 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
             const place = value.place
             setInputValue(place.name)
             await onPlaceSelected(place)
-            sessionTokenRef.current = createSessionToken()
             setError(null)
             setOptions([])
           } catch (caughtError) {
