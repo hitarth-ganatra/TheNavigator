@@ -43,15 +43,15 @@ export const MapPanel = ({
         }
 
         mapRef.current = new mapsLibrary.Map(containerRef.current, {
-          center: center || { lat: 20.5937, lng: 78.9629 },
-          zoom: center ? 11 : 4,
+          center: { lat: 20.5937, lng: 78.9629 },
+          zoom: 4,
           mapId: googleMapsConfig.mapId,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
           gestureHandling: 'greedy',
-          tilt: center ? 45 : 0,
-          heading: center ? 40 : 0,
+          tilt: 0,
+          heading: 0,
         })
         setError(null)
       } catch (caughtError) {
@@ -121,6 +121,9 @@ export const MapPanel = ({
       mapRef.current.setCenter(center)
       mapRef.current.setZoom(11)
     }
+
+    mapRef.current.setTilt(center ? 45 : 0)
+    mapRef.current.setHeading(center ? 40 : 0)
   }, [center, encodedPolyline, loading, nearbyPlaces, origin, selectedPlaces])
 
   return (

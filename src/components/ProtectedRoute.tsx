@@ -1,9 +1,10 @@
+import type { ReactElement } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { useAppStore } from '../store/appStore'
 
 type ProtectedRouteProps = {
-  children: JSX.Element
+  children: ReactElement
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {

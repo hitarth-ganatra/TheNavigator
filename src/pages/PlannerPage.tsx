@@ -131,7 +131,7 @@ export const PlannerPage = () => {
                 <ConfigPanel />
               </Paper>
               <Paper className="surface" elevation={0}>
-                <SearchBox onPlaceSelected={loadNearbyPlaces} />
+                <SearchBox key={origin?.placeId || 'search-box'} onPlaceSelected={loadNearbyPlaces} />
               </Paper>
               <Paper className="surface" elevation={0}>
                 <SearchHistory history={searchHistory} onReuse={handleReuseHistory} />

@@ -7,6 +7,8 @@ const ensureApiKey = () => {
   if (!API_KEY) {
     throw new Error('Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY to use autocomplete and nearby search.')
   }
+
+  return API_KEY
 }
 
 const placeTypes = [
@@ -57,7 +59,7 @@ export const autocompletePlaces = async (
   input: string,
   sessionToken: string,
 ): Promise<AutocompletePrediction[]> => {
-  ensureApiKey()
+  const apiKey = ensureApiKey()
 
   if (input.trim().length < 2) {
     return []
@@ -67,7 +69,7 @@ export const autocompletePlaces = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': API_KEY,
+      'X-Goog-Api-Key': apiKey,
     },
     body: JSON.stringify({
       input,
@@ -111,11 +113,11 @@ export const autocompletePlaces = async (
 }
 
 export const getPlaceDetails = async (placeId: string): Promise<PlaceSummary> => {
-  ensureApiKey()
+  const apiKey = ensureApiKey()
 
   const response = await fetch(`${PLACES_BASE_URL}/places/${placeId}`, {
     headers: {
-      'X-Goog-Api-Key': API_KEY,
+      'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
         'id,displayName,formattedAddress,location,rating,userRatingCount,regularOpeningHours.openNow,photos.name',
     },
@@ -134,13 +136,13 @@ export const searchNearbyPlaces = async (
   radiusKm: number,
   placeCount: number,
 ): Promise<PlaceSummary[]> => {
-  ensureApiKey()
+  const apiKey = ensureApiKey()
 
   const response = await fetch(`${PLACES_BASE_URL}/places:searchNearby`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': API_KEY,
+      'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
         'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.regularOpeningHours.openNow,places.photos.name',
     },

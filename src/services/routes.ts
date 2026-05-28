@@ -7,6 +7,8 @@ const ensureApiKey = () => {
   if (!API_KEY) {
     throw new Error('Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY to compute routes.')
   }
+
+  return API_KEY
 }
 
 const toWaypoint = (place: PlaceSummary) => ({
@@ -23,7 +25,7 @@ export const computeRoute = async (
   selectedPlaces: PlaceSummary[],
   mode: RouteMode,
 ): Promise<RouteResult> => {
-  ensureApiKey()
+  const apiKey = ensureApiKey()
 
   if (selectedPlaces.length === 0) {
     throw new Error('Choose at least one stop before computing a route.')
@@ -33,7 +35,7 @@ export const computeRoute = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Goog-Api-Key': API_KEY,
+      'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
         'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex,routes.legs.distanceMeters,routes.legs.duration',
     },

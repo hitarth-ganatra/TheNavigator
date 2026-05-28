@@ -21,16 +21,12 @@ type SearchBoxProps = {
 
 export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
   const origin = useAppStore((state) => state.origin)
-  const [inputValue, setInputValue] = useState(origin?.name || '')
+  const [inputValue, setInputValue] = useState(() => origin?.name || '')
   const [options, setOptions] = useState<AutocompletePrediction[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const sessionTokenRef = useRef(createSessionToken())
   const debouncedInput = useDebouncedValue(inputValue)
-
-  useEffect(() => {
-    setInputValue(origin?.name || '')
-  }, [origin?.name])
 
   useEffect(() => {
     let active = true
@@ -96,6 +92,7 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
           try {
             setLoading(true)
             const place = await getPlaceDetails(value.placeId)
+            setInputValue(place.name)
             await onPlaceSelected(place)
             sessionTokenRef.current = createSessionToken()
             setError(null)
