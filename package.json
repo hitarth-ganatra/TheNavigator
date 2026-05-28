@@ -1,7 +1,7 @@
 {
-  "name": "thenavigator-scaffold",
+  "name": "the-navigator",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,28 +15,28 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@googlemaps/js-api-loader": "^2.0.2",
-    "@mui/icons-material": "^9.0.1",
-    "@mui/material": "^9.0.1",
-    "framer-motion": "^12.40.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-router-dom": "^7.16.0",
-    "zustand": "^5.0.14"
+    "@googlemaps/js-api-loader": "^1.16.10",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
+    "framer-motion": "^12.23.24",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.6",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/google.maps": "^3.64.1",
-    "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/google.maps": "^3.58.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^10.3.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.6.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "eslint": "^10.0.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.0",
+    "globals": "^17.0.0",
+    "typescript": "~6.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vite": "^8.0.10"
   }
 }

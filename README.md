@@ -1,73 +1,68 @@
-# React + TypeScript + Vite
+# TheNavigator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TheNavigator is a React + TypeScript demo web app that showcases the latest Google Maps Platform APIs in a travel-planner flow.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Login/register landing screen with a sliding animation
+- Planner workspace with:
+  - Google Places autocomplete
+  - configurable nearby search radius and result count
+  - recent search history
+  - nearby popular place cards with add-to-itinerary actions
+  - reorderable selected-places panel with drag and drop
+  - live map preview with tilt/heading support for a 3D-style view
+- Route page with:
+  - ordered routing
+  - optimized routing
+  - route summary, legs, and full map polyline rendering
 
-## React Compiler
+## Google Maps setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Enable these APIs in Google Cloud:
 
-## Expanding the ESLint configuration
+1. Maps JavaScript API
+2. Places API (New)
+3. Routes API
+4. Geocoding API
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Recommended key restrictions:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Restrict the key by HTTP referrer
+- Restrict the key to the APIs listed above
+- Create and use a vector map ID for the best 3D map experience
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Create a local environment file:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Fill in:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+VITE_GOOGLE_MAP_ID=your_vector_map_id
+VITE_GOOGLE_MAPS_REGION=IN
+VITE_GOOGLE_MAPS_LANGUAGE=en
 ```
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+## Validation
+
+```bash
+npm run lint
+npm run build
+```
+
+## Notes
+
+- Auth is implemented as a local demo flow and persisted in local storage.
+- Search history, planner state, and the last computed route are also persisted locally.
+- Without a Google Maps API key the UI still loads, but live autocomplete, nearby search, and route computation stay disabled.
