@@ -3,6 +3,22 @@ import type { AutocompletePrediction, Coordinates, PlaceSummary } from '../types
 import { requestOrs } from './ors'
 
 const TOURISM_FOCUSED_KEYS = new Set(['tourism', 'leisure', 'historic'])
+const TOURISM_KEYWORDS = [
+  'tourism',
+  'tourist',
+  'attraction',
+  'museum',
+  'gallery',
+  'landmark',
+  'viewpoint',
+  'monument',
+  'historic',
+  'leisure',
+  'park',
+  'beach',
+  'zoo',
+  'theme park',
+]
 const FUN_AMENITIES = new Set([
   'arts_centre',
   'bar',
@@ -20,9 +36,37 @@ const FUN_AMENITIES = new Set([
   'social_centre',
   'theatre',
 ])
-const EXCLUDED_AMENITIES = new Set(['atm', 'bank', 'clinic', 'doctors', 'hospital'])
+const EXCLUDED_AMENITIES = new Set([
+  'atm',
+  'bank',
+  'bureau_de_change',
+  'clinic',
+  'dentist',
+  'doctors',
+  'hospital',
+  'pharmacy',
+  'post_office',
+  'school',
+  'university',
+  'veterinary',
+])
+const EXCLUDED_KEYWORDS = [
+  'atm',
+  'bank',
+  'clinic',
+  'dentist',
+  'doctor',
+  'financial',
+  'health',
+  'hospital',
+  'medical',
+  'pharmacy',
+]
 
 type RankedPlace = PlaceSummary & { score: number; excluded: boolean }
+
+const hasKeyword = (value: string | undefined, keywords: string[]) =>
+  Boolean(value && keywords.some((keyword) => value.includes(keyword)))
 
 const toPlaceId = (feature: {
   properties?: { gid?: string; id?: string; osm_id?: string; osm_type?: string; name?: string; label?: string }
@@ -137,12 +181,23 @@ export const searchNearbyPlaces = async (
     .map((feature) => {
       const [lng = 0, lat = 0] = feature.geometry?.coordinates || []
       const tags = feature.properties?.osm_tags || {}
-      const categoryName = Object.values(feature.properties?.category_ids || {}).find((category) => category?.category_name)
-        ?.category_name
+      const categoryNames = Object.values(feature.properties?.category_ids || {})
+        .map((category) => category?.category_name?.toLowerCase())
+        .filter((category): category is string => Boolean(category))
+      const categoryName = categoryNames[0]
+      const categoryText = categoryNames.join(' ')
       const amenity = tags.amenity?.toLowerCase()
+      const tourismTag = tags.tourism?.toLowerCase()
+      const leisureTag = tags.leisure?.toLowerCase()
+      const historicTag = tags.historic?.toLowerCase()
+      const placeTypeText = [tourismTag, leisureTag, historicTag, amenity].filter(Boolean).join(' ')
       const tourismScore = [...TOURISM_FOCUSED_KEYS].reduce((score, key) => (tags[key] ? score + 2 : score), 0)
       const amenityScore = amenity && FUN_AMENITIES.has(amenity) ? 2 : 0
-      const excluded = amenity ? EXCLUDED_AMENITIES.has(amenity) : false
+      const keywordScore = (hasKeyword(categoryText, TOURISM_KEYWORDS) ? 3 : 0) + (hasKeyword(placeTypeText, TOURISM_KEYWORDS) ? 3 : 0)
+      const excluded =
+        (amenity ? EXCLUDED_AMENITIES.has(amenity) : false) ||
+        hasKeyword(categoryText, EXCLUDED_KEYWORDS) ||
+        hasKeyword(placeTypeText, EXCLUDED_KEYWORDS)
       const name =
         feature.properties?.name ||
         tags.name ||
@@ -170,7 +225,7 @@ export const searchNearbyPlaces = async (
         name,
         address,
         location: { lat, lng },
-        score: tourismScore + amenityScore,
+        score: tourismScore + amenityScore + keywordScore,
         excluded,
       } as RankedPlace
     })
