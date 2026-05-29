@@ -57,5 +57,5 @@ npm run build
 - Auth is implemented as a local demo flow and persisted in local storage.
 - Search history, planner state, and the last computed route are also persisted locally.
 - OpenStreetMap attribution must stay visible when using the default tile layer.
-- Nearby POI search is capped at a 2 KM radius so requests stay within the configured ORS buffer limit.
+- Nearby POI search is capped at a 100 KM radius based on the configured ORS buffer limit.
 - Without a server-side `ORS_API_KEY` the UI still loads, but live autocomplete, nearby search, and route computation fail until the proxy is configured.

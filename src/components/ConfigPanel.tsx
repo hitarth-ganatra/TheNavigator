@@ -26,7 +26,7 @@ export const ConfigPanel = () => {
           fullWidth
         />
         <TextField
-          label="Radius (KM, max 2)"
+          label={`Radius (KM, max ${MAX_RADIUS_KM})`}
           type="number"
           value={tripConfig.radiusKm}
           inputProps={{ min: MIN_RADIUS_KM, max: MAX_RADIUS_KM }}
