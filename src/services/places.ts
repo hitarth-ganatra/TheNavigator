@@ -112,6 +112,7 @@ export const searchNearbyPlaces = async (
         osm_id?: string
         osm_type?: string
         name?: string
+        category_ids?: Record<string, { category_name?: string }>
         osm_tags?: { [key: string]: string | undefined }
       }
       geometry?: { coordinates?: [number, number] }
@@ -136,6 +137,8 @@ export const searchNearbyPlaces = async (
     .map((feature) => {
       const [lng = 0, lat = 0] = feature.geometry?.coordinates || []
       const tags = feature.properties?.osm_tags || {}
+      const categoryName = Object.values(feature.properties?.category_ids || {}).find((category) => category?.category_name)
+        ?.category_name
       const amenity = tags.amenity?.toLowerCase()
       const tourismScore = [...TOURISM_FOCUSED_KEYS].reduce((score, key) => (tags[key] ? score + 2 : score), 0)
       const amenityScore = amenity && FUN_AMENITIES.has(amenity) ? 2 : 0
@@ -143,6 +146,7 @@ export const searchNearbyPlaces = async (
       const name =
         feature.properties?.name ||
         tags.name ||
+        categoryName ||
         tags.tourism ||
         tags.amenity ||
         'Unknown place'

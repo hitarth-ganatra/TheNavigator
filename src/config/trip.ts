@@ -3,7 +3,7 @@ export const MAX_PLACE_COUNT = 30
 export const DEFAULT_PLACE_COUNT = 10
 
 export const MIN_NEARBY_BUFFER_METERS = 1
-export const MAX_NEARBY_BUFFER_METERS = 100000
+export const MAX_NEARBY_BUFFER_METERS = 2000
 
 export const MIN_RADIUS_KM = 1
 export const MAX_RADIUS_KM = MAX_NEARBY_BUFFER_METERS / 1000
