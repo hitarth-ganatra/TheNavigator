@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import LogoutIcon from '@mui/icons-material/Logout'
-import { Alert, Box, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Container, Paper, Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -123,11 +123,6 @@ export const PlannerPage = () => {
               </Stack>
             </Stack>
           </Paper>
-          {!import.meta.env.VITE_ORS_API_KEY ? (
-            <Alert severity="info">
-              Add an OpenRouteService API key to enable autocomplete, nearby place search, and route generation.
-            </Alert>
-          ) : null}
           <Box className="planner-grid">
             <Stack spacing={3} className="left-panel">
               <Paper className="surface" elevation={0}>

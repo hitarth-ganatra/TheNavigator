@@ -28,12 +28,15 @@ cp .env.example .env
 Fill in:
 
 ```env
-VITE_ORS_API_KEY=your_openrouteservice_api_key
+ORS_API_KEY=your_openrouteservice_api_key
+VITE_ORS_PROXY_BASE_URL=/api/ors
 VITE_MAP_COUNTRY_CODE=IN
 VITE_MAP_LANGUAGE=en
 VITE_MAP_TILE_URL=https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 VITE_MAP_TILE_ATTRIBUTION=&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors
 ```
+
+`ORS_API_KEY` is now server-only. The app sends browser requests to a local `/api/ors` proxy, and the Vite server/preview process adds the `Authorization` header before forwarding the request to OpenRouteService so the key is no longer shipped to the client bundle or query string.
 
 ## Run locally
 
@@ -54,4 +57,5 @@ npm run build
 - Auth is implemented as a local demo flow and persisted in local storage.
 - Search history, planner state, and the last computed route are also persisted locally.
 - OpenStreetMap attribution must stay visible when using the default tile layer.
-- Without an OpenRouteService API key the UI still loads, but live autocomplete, nearby search, and route computation stay disabled.
+- Nearby POI search is capped at a 2 KM radius so requests stay within the configured ORS buffer limit.
+- Without a server-side `ORS_API_KEY` the UI still loads, but live autocomplete, nearby search, and route computation fail until the proxy is configured.

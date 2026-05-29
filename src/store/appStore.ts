@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import { DEFAULT_PLACE_COUNT, DEFAULT_RADIUS_KM, sanitizePlaceCount, sanitizeRadiusKm } from '../config/trip'
 import type {
   PlaceSummary,
   RouteMode,
@@ -32,8 +33,8 @@ type AppState = {
 }
 
 const DEFAULT_TRIP_CONFIG: TripConfig = {
-  placeCount: 10,
-  radiusKm: 30,
+  placeCount: DEFAULT_PLACE_COUNT,
+  radiusKm: DEFAULT_RADIUS_KM,
 }
 
 const dedupeHistory = (history: SearchHistoryItem[], place: PlaceSummary): SearchHistoryItem[] => {
@@ -120,7 +121,8 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           tripConfig: {
             ...state.tripConfig,
-            ...config,
+            placeCount: sanitizePlaceCount(config.placeCount ?? state.tripConfig.placeCount),
+            radiusKm: sanitizeRadiusKm(config.radiusKm ?? state.tripConfig.radiusKm),
           },
           routeResult: null,
           routeMode: null,
@@ -130,6 +132,19 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'the-navigator-store',
+      merge: (persistedState, currentState) => {
+        const nextState = (persistedState as Partial<AppState>) || {}
+        const nextTripConfig = nextState.tripConfig || currentState.tripConfig
+
+        return {
+          ...currentState,
+          ...nextState,
+          tripConfig: {
+            placeCount: sanitizePlaceCount(nextTripConfig.placeCount),
+            radiusKm: sanitizeRadiusKm(nextTripConfig.radiusKm),
+          },
+        }
+      },
       partialize: (state) => ({
         authUser: state.authUser,
         origin: state.origin,
