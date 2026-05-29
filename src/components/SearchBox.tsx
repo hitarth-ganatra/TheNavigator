@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import SearchIcon from '@mui/icons-material/Search'
 import {
-  Alert,
   Autocomplete,
   CircularProgress,
   InputAdornment,
@@ -135,9 +134,6 @@ export const SearchBox = ({ onPlaceSelected }: SearchBoxProps) => {
           </li>
         )}
       />
-      {!import.meta.env.VITE_ORS_API_KEY ? (
-        <Alert severity="info">Set an OpenRouteService API key to enable live autocomplete.</Alert>
-      ) : null}
     </Stack>
   )
 }

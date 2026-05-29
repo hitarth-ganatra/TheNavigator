@@ -1,5 +1,6 @@
 import { Stack, TextField, Typography } from '@mui/material'
 
+import { MAX_PLACE_COUNT, MAX_RADIUS_KM, MIN_PLACE_COUNT, MIN_RADIUS_KM, sanitizePlaceCount, sanitizeRadiusKm } from '../config/trip'
 import { useAppStore } from '../store/appStore'
 
 export const ConfigPanel = () => {
@@ -16,22 +17,22 @@ export const ConfigPanel = () => {
           label="Popular places"
           type="number"
           value={tripConfig.placeCount}
-          inputProps={{ min: 1, max: 10 }}
+          inputProps={{ min: MIN_PLACE_COUNT, max: MAX_PLACE_COUNT }}
           onChange={(event) =>
             updateTripConfig({
-              placeCount: Math.min(10, Math.max(1, Number(event.target.value) || 1)),
+              placeCount: sanitizePlaceCount(Number(event.target.value)),
             })
           }
           fullWidth
         />
         <TextField
-          label="Radius (KM)"
+          label="Radius (KM, max 2)"
           type="number"
           value={tripConfig.radiusKm}
-          inputProps={{ min: 1, max: 50 }}
+          inputProps={{ min: MIN_RADIUS_KM, max: MAX_RADIUS_KM }}
           onChange={(event) =>
             updateTripConfig({
-              radiusKm: Math.min(50, Math.max(1, Number(event.target.value) || 1)),
+              radiusKm: sanitizeRadiusKm(Number(event.target.value)),
             })
           }
           fullWidth

@@ -1,15 +1,5 @@
 import type { PlaceSummary, RouteMode, RouteResult } from '../types/googleMaps'
-
-const API_KEY = import.meta.env.VITE_ORS_API_KEY
-const ROUTES_BASE_URL = 'https://api.openrouteservice.org/v2/directions/driving-car'
-
-const ensureApiKey = () => {
-  if (!API_KEY) {
-    throw new Error('OpenRouteService API key is missing. Set VITE_ORS_API_KEY to compute routes.')
-  }
-
-  return API_KEY
-}
+import { requestOrs } from './ors'
 
 const toDurationString = (seconds: number) => `${Math.max(0, Math.round(seconds))}s`
 
@@ -60,8 +50,6 @@ export const computeRoute = async (
   selectedPlaces: PlaceSummary[],
   mode: RouteMode,
 ): Promise<RouteResult> => {
-  const apiKey = ensureApiKey()
-
   if (selectedPlaces.length === 0) {
     throw new Error('Choose at least one stop before computing a route.')
   }
@@ -71,26 +59,7 @@ export const computeRoute = async (
 
   const coordinates = [origin, ...orderedStops, origin].map((place) => [place.location.lng, place.location.lat])
 
-  const response = await fetch(`${ROUTES_BASE_URL}?api_key=${encodeURIComponent(apiKey)}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      coordinates,
-      instructions: false,
-      geometry: true,
-      elevation: false,
-      units: 'm',
-      language: import.meta.env.VITE_MAP_LANGUAGE || 'en',
-    }),
-  })
-
-  if (!response.ok) {
-    throw new Error('Route request failed. Confirm OpenRouteService access and limits.')
-  }
-
-  const data = (await response.json()) as {
+  const data = await requestOrs<{
     routes?: Array<{
       geometry?: string
       summary?: {
@@ -102,7 +71,17 @@ export const computeRoute = async (
         duration?: number
       }>
     }>
-  }
+  }>('/v2/directions/driving-car', {
+    method: 'POST',
+    body: {
+      coordinates,
+      instructions: false,
+      geometry: true,
+      elevation: false,
+      units: 'm',
+      language: import.meta.env.VITE_MAP_LANGUAGE || 'en',
+    },
+  })
 
   const route = data.routes?.[0]
 
